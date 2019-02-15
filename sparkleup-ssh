@@ -1,4 +1,5 @@
 #!/bin/bash
 
 set -e
-ssh -i ./key $@
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ssh -i $SCRIPT_DIR/key $@

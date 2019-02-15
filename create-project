@@ -6,27 +6,27 @@ import sys
 TEMPLATE = """#!/bin/bash
 
 # Move to the project directory and log where we are.
-cd {}
+cd {project_dir}
 pwd
 
 # Set our SSH script.
-export GIT_SSH={}/sparkleup-ssh
+export GIT_SSH={sparkleup_dir}/sparkleup-ssh
 
 # Pull any recent changes.
-git pull
+git pull {remote} {branch}
 
 # Push our updates.
 git add .
 git commit -am "update from sparkleup"
-git push
+git push {remote} {branch}
 """
 
 USAGE = """Create a sparkleup project
 
-    USAGE: {} <project_dir>"""
+    USAGE: {} <project_dir> [remote] [branch]"""
 
 
-def main(sparkleup_dir, project_dir):
+def main(sparkleup_dir, project_dir, remote, branch):
     project_script = '{}/projects/{}'.format(
         sparkleup_dir,
         project_dir.split('/')[-1])
@@ -36,8 +36,10 @@ def main(sparkleup_dir, project_dir):
         sys.exit(1)
     with open(project_script, 'w') as f:
         f.write(TEMPLATE.format(
-            project_dir,
-            sparkleup_dir))
+            project_dir=project_dir,
+            sparkleup_dir=sparkleup_dir,
+            remote=remote,
+            branch=branch))
     os.chmod(project_script, 0o744)
     print('Project script created!')
     print('Now you should run `crontab -e` and add the following to that:\n')
@@ -45,7 +47,15 @@ def main(sparkleup_dir, project_dir):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 2 or len(sys.argv) > 4:
         print(USAGE.format(sys.argv[0]))
         sys.exit(1)
-    main(os.path.dirname(os.path.realpath(__file__)), os.path.abspath(sys.argv[1]))
+    try:
+        remote = sys.argv[2]
+    except Exception:
+        remote = 'origin'
+    try:
+        branch = sys.argv[3]
+    except Exception:
+        branch = 'master'
+    main(os.path.dirname(os.path.realpath(__file__)), os.path.abspath(sys.argv[1]), remote, branch)
